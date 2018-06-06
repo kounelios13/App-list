@@ -1,0 +1,19 @@
+{
+  "name": "app-list",
+  "description": "My Electron application description",
+  "main": "src/bootstrap.js",
+  "authors": [
+    "mkcodergr"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "src/bower_components",
+    "test",
+    "tests"
+  ]
+}
