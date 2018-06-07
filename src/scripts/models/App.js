@@ -14,7 +14,12 @@ const AppSchema = mongoose.Schema({
     is_daemonized:{
         type:Boolean,
         default:false
+    },
+    pid:{
+        type:Number,
+        default:0
     }
+
 });
 
 

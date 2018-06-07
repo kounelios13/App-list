@@ -1,8 +1,8 @@
 {
   "name": "app-list",
-  "productName": "app-list",
+  "productName": "Node app lister",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Manage NodeJS apps with eNode app lister",
   "main": "src/bootstrap.js",
   "scripts": {
     "start": "electron-forge start",
@@ -25,7 +25,7 @@
           "zip"
         ],
         "linux": [
-          "snap"
+          "deb"
         ]
       },
       "electronPackagerConfig": {
@@ -34,7 +34,11 @@
       "electronWinstallerConfig": {
         "name": "app_list"
       },
-      "electronInstallerDebian": {},
+      "electronInstallerDebian": {
+        "productName":"Node app lister",
+        "name":"app-list",
+        "description":"Manage your node apps with ease"
+      },
       "electronInstallerRedhat": {},
       "github_repository": {
         "owner": "",
