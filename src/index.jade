@@ -4,7 +4,6 @@ html(lang="en")
         meta(charset="UTF-8")
         meta(name="viewport", content="width=device-width, initial-scale=1.0")
         meta(http-equiv="X-UA-Compatible", content="ie=edge")
-        title App list
         script.
             if(module)
             {
@@ -20,13 +19,13 @@ html(lang="en")
                 module = window.module;
                 window.module = undefined;
             }
-        script(src="./bower_components/bootbox.js/bootbox.js")
+        script(src="../node_modules/bootbox/src/bootbox.js")
         script(src="./scripts/index.js")
         link(rel="stylesheet", href="./styles/main.scss")
     body
         .container-fluid
             .jumbotron.main-jumbotron 
-                h1.text-center App list
+                h1.text-center App Daemonizer
                 p Select nodejs apps give them a name an the start them as services using PM2
         .container-fluid
             #apps

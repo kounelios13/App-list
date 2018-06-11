@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+
+
 const AppSchema = mongoose.Schema({
     name: {
         type: String
@@ -41,8 +43,17 @@ module.exports.updateApp = (query, update, options, cb) => {
     App.findOneAndUpdate(query, update, options, cb);
 };
 
-module.exports.findAppById = (id, cb)=>{
-    App.findById(id,cb);
+module.exports.findAppById = (id)=>{
+    //App.findById(id,cb);
+    return new Promise((resolve,reject)=>{
+        App.findById(id,(err,data)=>{
+            if(err){
+                reject(err);
+            }else{
+                resolve(data);
+            }
+        });
+    });
 };
 
 module.exports.removeApp = (query, cb)=>{

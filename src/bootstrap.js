@@ -3,8 +3,9 @@ import {
     BrowserWindow,
     ipcMain
 } from 'electron';
-const mongoose = require('mongoose');
 
+
+import * as path from 'path';
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
     app.quit();
@@ -13,16 +14,16 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
-mongoose.connect('mongodb://localhost/applist').catch(e => {
-    console.error('Failed to connect to database');
-});
+
 const createWindow = () => {
     // Create the browser window.
     mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
-        fullscreen:true,
-        title:'App Daemonizer'
+        fullscreen:false,
+        title:'App Daemonizer',
+        icon:path.join(__dirname,'../icons/proc_blue_grad.png'),
+        show:false
     });
 
     // and load the index.html of the app.
@@ -35,12 +36,22 @@ const createWindow = () => {
         // when you should delete the corresponding element.
         mainWindow = null;
     });
+
+    mainWindow.once('ready-to-show',(e)=>{
+        mainWindow.show();
+    });
 };
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
+
+app.on('window-will-show',()=>{
+    mainWindow;
+});
+
+
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

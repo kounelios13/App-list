@@ -7,3 +7,25 @@ body{
         background-color:rgba(0,123,254,.6);
     }
 }
+
+.custom-dialog{
+    border-radius:4px 4px 0px 0px;
+}
+
+@mixin make_dialog_color($base_color){
+    .modal-header{
+        background: $base_color;
+        border-color:darken($base_color, 4%);
+        @extend .custom-dialog;
+    }  
+}
+
+.success-dialog{
+    $base_color :#4cae4c;
+    @include make_dialog_color($base_color);
+}
+
+.error-dialog{
+    $base_color :#d43f3a;
+    @include make_dialog_color($base_color);   
+}

@@ -1,8 +1,8 @@
 {
-  "name": "app-list",
-  "productName": "Node app lister",
-  "version": "1.0.0",
-  "description": "Manage NodeJS apps with eNode app lister",
+  "name": "node-app-list",
+  "productName": "node-app-list",
+  "version": "1.0.4",
+  "description": "My Electron application description",
   "main": "src/bootstrap.js",
   "scripts": {
     "start": "electron-forge start",
@@ -32,12 +32,15 @@
         "packageManager": "yarn"
       },
       "electronWinstallerConfig": {
-        "name": "app_list"
+        "name": "electron_forge_demo"
       },
       "electronInstallerDebian": {
-        "productName":"Node app lister",
-        "name":"app-list",
-        "description":"Manage your node apps with ease"
+        "productName": "App Daemonizer",
+        "genericName": "nal",
+        "name": "nal",
+        "category": "Utilities",
+        "description": "Install nodejs apps as services",
+        "icon": "./icons/proc_blue_grad.png"
       },
       "electronInstallerRedhat": {},
       "github_repository": {
@@ -46,11 +49,12 @@
       },
       "windowsStoreConfig": {
         "packageName": "",
-        "name": "applist"
+        "name": "electronforgedemo"
       }
     }
   },
   "dependencies": {
+    "bootbox": "https://github.com/makeusabrew/bootbox/#v5.x",
     "dialogs": "^1.1.20",
     "electron-compile": "^6.4.2",
     "electron-squirrel-startup": "^1.0.0",
@@ -65,6 +69,7 @@
     "electron-prebuilt-compile": "2.0.2",
     "eslint": "^3",
     "eslint-config-airbnb": "^15",
+    "eslint-plugin-compat": "^2.3.0",
     "eslint-plugin-import": "^2",
     "eslint-plugin-jsx-a11y": "^5",
     "eslint-plugin-react": "^7"
