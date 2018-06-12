@@ -19,6 +19,7 @@ const app_markup = `
                         </div>
                         <div class='btn btn-secondary btn-edit disabled'>Edit</div>
                         <div class='btn btn-primary btn-start'>Start</div>
+                        <div class='btn btn-danger btn-stop'>Stop</div>
                         <div class='btn btn-warning btn-restart'>Restart</div>
                         <div class='btn btn-success btn-launch'>Open in browser</div>
                     </div>
@@ -27,10 +28,12 @@ const app_markup = `
         </div>
     </div>    
         `;
-//let boot = require('bootbox');
+
 const {
     daemonizeApp,
-    pm2
+    stopApp,
+    pm2,
+    restartApp
 } = require('./scripts/pm2-functions');
 const bootbox_dialogs = require('./scripts/bootbox-dialogs');
 const error_d = bootbox_dialogs.default.err;
@@ -40,17 +43,12 @@ mongoose.connect('mongodb://localhost/applist').catch(e => {
 });
 const App = require('./scripts/models/App');
 const {
-    dialog,shell
+    dialog,
+    shell
 } = require('electron').remote;
 const {
     ipcRenderer
 } = require('electron');
-
-
-const dialogs = require('dialogs')({
-    hostname: 'App lister'
-});
-
 
 function createAppList(apps) {
     apps.forEach(app => {
@@ -59,7 +57,7 @@ function createAppList(apps) {
             name,
             location
         } = app;
-        let markup = 
+        let markup =
             app_markup.replace('$$$id', _id)
             .replace('$$$name', name)
             .replace('$$$location', location);
@@ -114,9 +112,9 @@ function createNewApp() {
                                         location
                                     } = proc;
                                     success("App has been added");
-                                    let markup = app_markup.replace('$$$name',name)
-                                    .replace('$$$location',location)
-                                    .replace('$$$id',_id);
+                                    let markup = app_markup.replace('$$$name', name)
+                                        .replace('$$$location', location)
+                                        .replace('$$$id', _id);
                                     $("#apps").append(markup);
                                 }
                             });
@@ -144,81 +142,49 @@ function createNewApp() {
  * Starts an app as a background process using pm2
  * @param {String} id The id of the app(as registerd to database)
  */
-function startApp(id) {
-    App.findById(id, async (err, app) => {
-        let packageFile = null;
-        try {
-            packageFile = require(`${app.location}/package.json`);
-        } catch (e) {
-            dialogs.alert("Folder doesn't contain a package.json file");
-        } finally {
-            if (packageFile && packageFile.main) {
-                let dApp = null;
-                let appFile = path.join(app.location, packageFile.main);
-
-                try {
-                    dApp = await daemonizeApp({
-                        script: appFile,
-                        name: app.name,
-                        max_memory_restart: '150M',
-                        env: {
-                            "PORT": app.port,
-                            "NODE_ENV": "production"
-                        }
-                    });
-                    let currentApp = dApp[0];
-
-                    let pid =currentApp.process.pid;
-                    let query = {
-                        _id: id
-                    };
-                    let update = {
-                        $set: {
-                            is_daemonized: true,
-                            pid: pid
-                        }
-                    };
-                    let options = {};
-                    App.update(query, update, options, (err, data) => {
-                        if (err) {
-                            console.error(err)
-                        } else {
-                            console.log("Updated data")
-                        }
-                    });
-                    success("App has been daemonized.Running on port " + app.port);
-                } catch (e) {
-                    console.error(e)
-                    error_d(e.toString());
-                }
-
-            }
-        }
-    });
-}
-
-function restartApp(id) {
-    return Promise.resolve(null);
-}
-
-async function editApp(id) {
+async function startApp(id) {
     let app = null;
+    let packageFile = null;
     try {
         app = await App.findAppById(id);
+        console.log(app)
+        packageFile = require(`${app.location}/package.json`);
+        let options = Object.assign({
+            name: app.name,
+            script: path.join(app.location,packageFile.main)
+        }, pm2_base_options);
+        let daemonizedApp = (await daemonizeApp(options)).pop();
+        console.log(daemonizedApp)
+        let pid = daemonizedApp.process.pid;
+        let query = {
+            _id: id
+        };
+        let update = {
+            $set: {
+                is_daemonized: true,
+                pid: pid
+            }
+        };
+        App.update(app,update,{},(error,app)=>{
+            if(error){
+                console.log(error);
+            }else{
+                console.log('Updated app metadata');
+            }
+        });
+        success("App has been daemonized.Running on port " + app.port);
     } catch (e) {
-        bootbox.alert({
-            title: "Failed to retrieve app",
-            message: e.getMessage()
-        })
-    } finally {
-        if (app != null) {
-            let {
-                name,
-                port,
-                pid,
-                is_daemonized
-            } = app;
-            let markup = `
+        console.error(e)
+        error_d(e.toString());
+    }
+}
+
+
+async function editApp(id){
+    try{
+        let appToEdit = await App.findAppById(id);
+        let {name,port,is_daemonized,pid} = appToEdit;
+        let markup = `
                 <form>
                     <div class='form-group'>
                         <label for='aname'>App name</label>
@@ -234,27 +200,52 @@ async function editApp(id) {
                     </div>
                 </form>
             `;
-            bootbox.alert({
-                title: "Edit " + name,
-                message: markup
-            });
-        }
+        bootbox.dialog({
+            title: "Edit " + name,
+            message: markup,
+            buttons:{
+                cancel:{
+                    label:"Cancel",
+                    callback:()=>{
+                        bootbox.hideAll();
+                    }
+                },
+                delete:{
+                    label:'Remove and delete',
+                    callback:()=>{
+
+                    },
+                    className:'btn-danger'
+
+                },
+                update:{
+                    label:'Update',
+                    className:'btn-success',
+                    callback:()=>{
+
+                    }
+                }
+            }
+        });
+    }catch(e){
+        error_d(e.toString());
     }
 }
-
 /**
  * Launches an app in browser
  * @param {String} id
  */
-function launchInBrowser(id){
-    App.findAppById(id)
-        .then(app=>{
-            let {port} = app;
-            let url = `http://localhost:${port}`;
-            shell.openExternal(url);
-        });
+async function launchInBrowser(id) {
+    let app = await App.findAppById(id);
+    let {
+        port
+    } = app;
+    let url = `http://localhost:${port}`;
+    shell.openExternal(url);
 
 }
+
+
 $(document).ready(() => {
     App.getApps((err, data) => {
         if (err) {
@@ -269,18 +260,36 @@ $(document).ready(() => {
     $("#apps").on("click", ".btn-start", function (e) {
         let id = $(this).parent().parent().data("id");
         startApp(id);
-    }).on("click", ".btn-stop", function (e) {
+    }).on("click", ".btn-stop", async function (e) {
         let id = $(this).parent().parent().data("id");
-        stopApp(id);
-    }).on("click", ".btn-restart", function (e) {
+        let app = null;
+        try {
+            app = await App.findAppById(id);
+            let stoppedApp = await stopApp(app.name);
+            success("App has been stopped");
+        } catch (e) {
+            error_d(e.toString());
+        }
+
+    }).on("click", ".btn-restart", async function (e) {
         let id = $(this).parent().parent().data("id");
-        restartApp(id)
-            .then(e => {})
-            .catch(e => {});
+        let foundApp = null;
+        try {
+            foundApp = await App.findAppById(id);
+            let restartedApp = await restartApp(foundApp.name);
+            success("App has been restarted");
+        } catch (e) {
+            let msg = e.toString();
+            if (msg.indexOf('name not found') != -1) {
+                d_error("The process you selected has not been started using pm2 thus cannot be restarted");
+            } else {
+                error_d(msg);
+            }
+        }
     }).on("click", ".btn-edit", function (e) {
         let id = $(this).parent().parent().data("id");
-        //editApp(id);
-    }).on("click",".btn-launch",function(e){
+        editApp(id);
+    }).on("click", ".btn-launch", function (e) {
         let id = $(this).parent().parent().data("id");
         launchInBrowser(id);
     });
