@@ -58,7 +58,7 @@
     "dialogs": "^1.1.20",
     "electron-compile": "^6.4.2",
     "electron-squirrel-startup": "^1.0.0",
-    "mongoose": "^5.1.4",
+    "mongoose": "^5.7.5",
     "pm2": "^2.10.4"
   },
   "devDependencies": {
